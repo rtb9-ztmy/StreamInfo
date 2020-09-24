@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Google_client;
 use Google_Service_Youtube;
+use Log;
 
 class YoutubeController extends Controller
 {
@@ -27,6 +28,6 @@ class YoutubeController extends Controller
             'part' => ['snippet', 'liveStreamingDetails']
         ]);
         
-        return $liveStreamingDetails;
+        return json_encode($liveStreamingDetails);
     }
 }
