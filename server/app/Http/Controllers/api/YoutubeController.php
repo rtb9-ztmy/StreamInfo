@@ -28,6 +28,10 @@ class YoutubeController extends Controller
             'part' => ['snippet', 'liveStreamingDetails']
         ]);
         
-        return json_encode($liveStreamingDetails);
+        if ((array)$liveStreamingDetails->items) {
+            return json_encode($liveStreamingDetails);
+        } else {
+            return response()->json([], 500);
+        }
     }
 }
