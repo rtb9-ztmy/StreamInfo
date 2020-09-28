@@ -7,6 +7,9 @@
     <title>LiveStreamingDetail</title>
 </head>
 <body>
-    <div id="app"></div>
+    <div id="app">
+        <search-component></search-component>
+    </div>
+    <script src="{{ mix('js/app.js') }}"></script>
 </body>
 </html>
