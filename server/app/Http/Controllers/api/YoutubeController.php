@@ -4,8 +4,8 @@ namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Google_client;
-use Google_Service_Youtube;
+use Google_Client;
+use Google_Service_YouTube;
 use Log;
 
 class YoutubeController extends Controller
@@ -16,9 +16,9 @@ class YoutubeController extends Controller
     public function __construct()
     {
         $this->googleClient = new Google_Client();
-        $this->googleClient->setDeveloperKey(env('GOOGLE_API_KEY'));
+        $this->googleClient->setDeveloperKey("AIzaSyAaFI_H4r34fWjfOd7o-nWwvQshSccgKLU");
 
-        $this->youtube = new Google_Service_Youtube($this->googleClient);
+        $this->youtube = new Google_Service_YouTube($this->googleClient);
     }
 
     public function getLiveStreamingDetails(string $videoId)
