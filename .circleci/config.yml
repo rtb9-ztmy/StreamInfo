@@ -1,0 +1,47 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/php:7.3-node-browsers
+      - image: circleci/mysql:5.7-ram
+    environment:
+      - DB_CONNETCTION: circle_testing
+      - MYSQL_ALLOW_EMPTY_PASSWORD: true
+    
+    steps:
+      - checkout
+      - run: sudo apt-get update
+      - run: sudo docker-php-ext-install pdo_mysql
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "server/composer.json" }}
+            - v1-dependencies-
+      - run: composer install -n --prefer-dist
+      - save_cache:
+          paths:
+            - ./vendor
+          key: v1-dependencies-{{ checksum "sever/composer.json" }}
+      - run: 
+          working_directory: server
+          command: vendor/bin/phpunit
+  
+  deploy: 
+    machine:
+      image: circleci/classic:edge
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "SHA256:TEhpcn4MhUvayBLqJ+mkvRQ6AkzzEsnJ2Dm8Y31aNzY"
+      - run: ssh ${USER_NAME}@${HOST_NAME} 'cd /var/www/aws-laravel/ && git pull origin master'
+
+workflows:
+  version: 2
+  build_and_deploy:
+    jobs:
+      - build
+      - deploy:
+          requires:
+            -build
+          filters:
+            branches:
+              only: master 

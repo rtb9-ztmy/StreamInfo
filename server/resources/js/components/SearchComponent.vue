@@ -55,7 +55,6 @@ export default {
                 }
             }).catch((error) => {
                 this.concurrentViewers = 0;
-                console.log(error);
                 this.errorMsg = 'URLが無効です';
             });
         },
