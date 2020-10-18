@@ -21,7 +21,9 @@ jobs:
           paths:
             - ./vendor
           key: v1-dependencies-{{ checksum "server/composer.json" }}
-      - run: php artisan key:generate
+      - run: 
+          working_directory: server
+          command: php artisan key:generate
       - run: 
           working_directory: server
           command: vendor/bin/phpunit
