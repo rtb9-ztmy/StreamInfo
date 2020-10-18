@@ -32,7 +32,8 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - "SHA256:gIlYrtQj8gPKXLFcfMTSemGsrvNXvSqebOXIHiLsBE4"
-      - run: ssh ${USER_NAME}@${HOST_NAME} 'cd /var/www/html/StreamInfo && git pull origin master && cd /server && npm run dev' 
+      - run: ssh ${USER_NAME}@${HOST_NAME} 'cd /var/www/html/StreamInfo && git pull origin master'
+      - run: ssh ${USER_NAME}@${HOST_NAME} 'cd /var/www/html/StreamInfo/server && npm run dev'
 
 workflows:
   version: 2
