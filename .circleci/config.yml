@@ -31,7 +31,7 @@ jobs:
     steps:
       - add_ssh_keys:
           fingerprints:
-            - "SHA256:TEhpcn4MhUvayBLqJ+mkvRQ6AkzzEsnJ2Dm8Y31aNzY"
+            - "SHA256:gIlYrtQj8gPKXLFcfMTSemGsrvNXvSqebOXIHiLsBE4"
       - run: ssh ${USER_NAME}@${HOST_NAME} 'cd /var/www/aws-laravel/ && git pull origin master'
 
 workflows:
