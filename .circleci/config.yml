@@ -20,7 +20,7 @@ jobs:
       - save_cache:
           paths:
             - ./vendor
-          key: v1-dependencies-{{ checksum "sever/composer.json" }}
+          key: v1-dependencies-{{ checksum "server/composer.json" }}
       - run: 
           working_directory: server
           command: vendor/bin/phpunit
