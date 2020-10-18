@@ -16,8 +16,7 @@ jobs:
           keys:
             - v1-dependencies-{{ checksum "server/composer.json" }}
             - v1-dependencies-
-      - run: ls
-      - run: composer install -n --prefer-dist　--working-dir=./server
+      - run: composer install -n --prefer-dist --working-dir=./server
       - save_cache:
           paths:
             - ./vendor
