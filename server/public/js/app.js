@@ -1959,6 +1959,7 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
@@ -2001,7 +2002,6 @@ __webpack_require__.r(__webpack_exports__);
         }
       })["catch"](function (error) {
         _this.concurrentViewers = 0;
-        console.log(error);
         _this.errorMsg = 'URLが無効です';
       });
     },
@@ -37729,6 +37729,8 @@ var render = function() {
         }
       },
       [
+        _c("option", { attrs: { value: "60" } }, [_vm._v("1分")]),
+        _vm._v(" "),
         _c("option", { attrs: { value: "300" } }, [_vm._v("5分")]),
         _vm._v(" "),
         _c("option", { attrs: { value: "600" } }, [_vm._v("10分")])
