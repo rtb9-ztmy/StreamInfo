@@ -10,7 +10,6 @@
     <div id="app">
         <search-component></search-component>
     </div>
-    <h1>test</h1>
     <script src="{{ mix('js/app.js') }}"></script>
 </body>
 </html>
