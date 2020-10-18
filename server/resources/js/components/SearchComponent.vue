@@ -14,6 +14,7 @@
     <ul>
         <li v-for="comparisonViewer in comparisonViewers" :key="comparisonViewer">{{comparisonViewer}}</li>
     </ul>
+    <h1>Vue.js</h1>
 </div>
 </template>
 
