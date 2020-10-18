@@ -21,6 +21,7 @@ jobs:
           paths:
             - ./vendor
           key: v1-dependencies-{{ checksum "server/composer.json" }}
+      - run: echo "APP_KEY=" > .env
       - run: 
           working_directory: server
           command: php artisan key:generate
