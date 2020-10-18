@@ -2,6 +2,7 @@
 <div>
     <input type="text" v-model="url">
     <select v-model="remainingTime" :disabled="search">
+        <option value="60">1分</option>
         <option value="300">5分</option>
         <option value="600">10分</option>
     </select>
