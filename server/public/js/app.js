@@ -1960,6 +1960,7 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
@@ -1973,17 +1974,21 @@ __webpack_require__.r(__webpack_exports__);
       search: false,
       reset: true,
       errorMsg: null,
-      comparisonViewers: []
+      date: null,
+      liveHistories: []
     };
   },
   methods: {
+    // 処理開始
     startAnalysis: function startAnalysis() {
       this.initTime = this.remainingTime;
       this.getYoutubeLiveStreamingDetailsByVideoId();
     },
+    // ライブ情報取得
     getYoutubeLiveStreamingDetailsByVideoId: function getYoutubeLiveStreamingDetailsByVideoId() {
       var _this = this;
 
+      // URLの余分な部分をカット
       var videoId = this.url.replace('https://www.youtube.com/watch?v=', '').replace('&feature=youtu.be', '');
       axios.get('/api/search/' + videoId).then(function (res) {
         // ライブ中か判定
@@ -2000,11 +2005,12 @@ __webpack_require__.r(__webpack_exports__);
         } else {
           _this.errorMsg = 'このライブは終了したか、ライブ配信ではありません。';
         }
-      })["catch"](function (error) {
+      })["catch"](function () {
         _this.concurrentViewers = 0;
         _this.errorMsg = 'URLが無効です';
       });
     },
+    // タイマー開始
     timerStart: function timerStart() {
       var _this2 = this;
 
@@ -2021,26 +2027,30 @@ __webpack_require__.r(__webpack_exports__);
           _this2.sec = _this2.remainingTime % 60;
         }
 
-        _this2.remainingTime--;
+        _this2.remainingTime--; // 残り時間が0になったとき
 
         if (_this2.remainingTime === 0) {
           _this2.remainingTime = _this2.initTime;
 
-          _this2.comparisonViewers.push(_this2.concurrentViewers);
+          _this2.getDate();
 
-          _this2.beforeConcurrentViewers = _this2.concurrentViewers;
+          _this2.liveHistories.push({
+            numberOfPeople: _this2.concurrentViewers,
+            date: _this2.date
+          });
 
           _this2.getYoutubeLiveStreamingDetailsByVideoId();
         }
       }, 1000);
     },
+    // タイマーリセット
     timerReset: function timerReset() {
       clearInterval(this.timerObj);
       this.search = false;
       this.reset = true;
       this.remainingTime = this.initTime;
       this.concurrentViewers = 0;
-      this.comparisonViewers = [];
+      this.liveHistories = [];
       this.min = Math.floor(this.remainingTime / 60);
 
       if (this.remainingTime % 60 < 10) {
@@ -2048,6 +2058,18 @@ __webpack_require__.r(__webpack_exports__);
       } else {
         this.sec = this.remainingTime % 60;
       }
+    },
+    // 現在日時を取得
+    getDate: function getDate() {
+      var dateObj = new Date();
+      var year = dateObj.getFullYear();
+      var month = dateObj.getMonth() + 1;
+      var date = dateObj.getDate();
+      var hour = dateObj.getHours();
+      var min = dateObj.getMinutes();
+      var sec = dateObj.getSeconds();
+      var now = year + '/' + month + '/' + date + ' ' + hour + ':' + min + ':' + sec;
+      this.date = now;
     }
   }
 });
@@ -37729,6 +37751,8 @@ var render = function() {
         }
       },
       [
+        _c("option", { attrs: { value: "10" } }, [_vm._v("10秒")]),
+        _vm._v(" "),
         _c("option", { attrs: { value: "60" } }, [_vm._v("1分")]),
         _vm._v(" "),
         _c("option", { attrs: { value: "300" } }, [_vm._v("5分")]),
@@ -37757,9 +37781,13 @@ var render = function() {
     _vm._v(" "),
     _c(
       "ul",
-      _vm._l(_vm.comparisonViewers, function(comparisonViewer) {
-        return _c("li", { key: comparisonViewer }, [
-          _vm._v(_vm._s(comparisonViewer))
+      _vm._l(_vm.liveHistories, function(liveHistory, index) {
+        return _c("li", { key: index }, [
+          _vm._v(
+            _vm._s(liveHistory.numberOfPeople) +
+              "人　" +
+              _vm._s(liveHistory.date)
+          )
         ])
       }),
       0
