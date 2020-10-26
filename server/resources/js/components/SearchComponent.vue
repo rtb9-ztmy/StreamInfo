@@ -123,11 +123,11 @@ export default {
             let dateObj = new Date();
 
             let year = dateObj.getFullYear();
-            let month = dateObj.getMonth() + 1;
-            let date = dateObj.getDate();
-            let hour = dateObj.getHours();
-            let min = dateObj.getMinutes();
-            let sec = dateObj.getSeconds();
+            let month = this.digitAdjustment(dateObj.getMonth() + 1);
+            let date = this.digitAdjustment(dateObj.getDate());
+            let hour = this.digitAdjustment(dateObj.getHours());
+            let min = this.digitAdjustment(dateObj.getMinutes());
+            let sec = this.digitAdjustment(dateObj.getSeconds());
 
             let now = year + '/' + month + '/' + date + ' ' + hour + ':' + min + ':' + sec;
 
@@ -152,6 +152,12 @@ export default {
             link.href = window.URL.createObjectURL(blob);
             link.download = 'Result.csv';
             link.click();
+        },
+
+        // 日時の桁数を調整
+        digitAdjustment(date){
+            if (date < 10) return '0' + date;
+            return date;
         }
     }
 }

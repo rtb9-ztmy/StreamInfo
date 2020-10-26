@@ -2069,11 +2069,11 @@ __webpack_require__.r(__webpack_exports__);
     getDate: function getDate() {
       var dateObj = new Date();
       var year = dateObj.getFullYear();
-      var month = dateObj.getMonth() + 1;
-      var date = dateObj.getDate();
-      var hour = dateObj.getHours();
-      var min = dateObj.getMinutes();
-      var sec = dateObj.getSeconds();
+      var month = this.digitAdjustment(dateObj.getMonth() + 1);
+      var date = this.digitAdjustment(dateObj.getDate());
+      var hour = this.digitAdjustment(dateObj.getHours());
+      var min = this.digitAdjustment(dateObj.getMinutes());
+      var sec = this.digitAdjustment(dateObj.getSeconds());
       var now = year + '/' + month + '/' + date + ' ' + hour + ':' + min + ':' + sec;
       this.date = now;
     },
@@ -2094,6 +2094,11 @@ __webpack_require__.r(__webpack_exports__);
       link.href = window.URL.createObjectURL(blob);
       link.download = 'Result.csv';
       link.click();
+    },
+    // 日時の桁数を調整
+    digitAdjustment: function digitAdjustment(date) {
+      if (date < 10) return '0' + date;
+      return date;
     }
   }
 });
