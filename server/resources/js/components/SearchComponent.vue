@@ -12,6 +12,7 @@
     <p>{{min}}:{{sec}}</p>
     <button :disabled="reset" @click="timerReset">リセット</button>
     <p>同時視聴者数:{{concurrentViewers}}</p>
+    <button @click="downloadCSV" :disabled="download">ダウンロード</button>
     <ul>
         <li v-for="(liveHistory, index) in liveHistories" :key="index">{{liveHistory.numberOfPeople}}人　{{liveHistory.date}}</li>
     </ul>
@@ -33,6 +34,7 @@ export default {
             reset: true,
             errorMsg: null,
             date: null,
+            download: true,
             liveHistories: []
         }
     },
@@ -75,6 +77,9 @@ export default {
                 this.search = true;
                 this.reset = false;
 
+                // 履歴が空でなければダウンロードボタンを押せるようにする
+                if (this.liveHistories.length > 0) this.download = false;
+
                 this.remainingTime = Number(this.remainingTime);
                 this.min = Math.floor(this.remainingTime / 60);
                 if (this.remainingTime % 60 < 10) {
@@ -97,8 +102,11 @@ export default {
         // タイマーリセット
         timerReset() {
             clearInterval(this.timerObj);
+            // 各ボタンの活性/非活性を切り替える
             this.search = false;
             this.reset = true; 
+            this.download = true;
+
             this.remainingTime = this.initTime;
             this.concurrentViewers = 0;
             this.liveHistories = [];
@@ -115,15 +123,41 @@ export default {
             let dateObj = new Date();
 
             let year = dateObj.getFullYear();
-            let month = dateObj.getMonth() + 1;
-            let date = dateObj.getDate();
-            let hour = dateObj.getHours();
-            let min = dateObj.getMinutes();
-            let sec = dateObj.getSeconds();
+            let month = this.digitAdjustment(dateObj.getMonth() + 1);
+            let date = this.digitAdjustment(dateObj.getDate());
+            let hour = this.digitAdjustment(dateObj.getHours());
+            let min = this.digitAdjustment(dateObj.getMinutes());
+            let sec = this.digitAdjustment(dateObj.getSeconds());
 
             let now = year + '/' + month + '/' + date + ' ' + hour + ':' + min + ':' + sec;
 
             this.date = now;
+        },
+
+        // csvダウンロード
+        downloadCSV() {
+            if(this.liveHistories.length > 1) this.download = false; 
+
+            let csv = '\ufeff' + '同時視聴者数,時刻\n'
+
+            // 一行ずつデータを作成
+            this.liveHistories.forEach(function(el){
+                let line = el.numberOfPeople + ',' + el.date + '\n';
+                csv += line;
+                console.log(el);
+            });
+
+            let blob = new Blob([csv], { type: 'text/csv' });
+            let link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = 'Result.csv';
+            link.click();
+        },
+
+        // 日時の桁数を調整
+        digitAdjustment(date){
+            if (date < 10) return '0' + date;
+            return date;
         }
     }
 }
