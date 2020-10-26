@@ -1961,6 +1961,7 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
@@ -1975,6 +1976,7 @@ __webpack_require__.r(__webpack_exports__);
       reset: true,
       errorMsg: null,
       date: null,
+      download: true,
       liveHistories: []
     };
   },
@@ -2017,7 +2019,9 @@ __webpack_require__.r(__webpack_exports__);
       if (this.timerObj) clearInterval(this.timerObj);
       this.timerObj = setInterval(function () {
         _this2.search = true;
-        _this2.reset = false;
+        _this2.reset = false; // 履歴が空でなければダウンロードボタンを押せるようにする
+
+        if (_this2.liveHistories.length > 0) _this2.download = false;
         _this2.remainingTime = Number(_this2.remainingTime);
         _this2.min = Math.floor(_this2.remainingTime / 60);
 
@@ -2045,9 +2049,11 @@ __webpack_require__.r(__webpack_exports__);
     },
     // タイマーリセット
     timerReset: function timerReset() {
-      clearInterval(this.timerObj);
+      clearInterval(this.timerObj); // 各ボタンの活性/非活性を切り替える
+
       this.search = false;
       this.reset = true;
+      this.download = true;
       this.remainingTime = this.initTime;
       this.concurrentViewers = 0;
       this.liveHistories = [];
@@ -2070,6 +2076,24 @@ __webpack_require__.r(__webpack_exports__);
       var sec = dateObj.getSeconds();
       var now = year + '/' + month + '/' + date + ' ' + hour + ':' + min + ':' + sec;
       this.date = now;
+    },
+    // csvダウンロード
+    downloadCSV: function downloadCSV() {
+      if (this.liveHistories.length > 1) this.download = false;
+      var csv = "\uFEFF" + '同時視聴者数,時刻\n'; // 一行ずつデータを作成
+
+      this.liveHistories.forEach(function (el) {
+        var line = el.numberOfPeople + ',' + el.date + '\n';
+        csv += line;
+        console.log(el);
+      });
+      var blob = new Blob([csv], {
+        type: 'text/csv'
+      });
+      var link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = 'Result.csv';
+      link.click();
     }
   }
 });
@@ -37778,6 +37802,12 @@ var render = function() {
     ),
     _vm._v(" "),
     _c("p", [_vm._v("同時視聴者数:" + _vm._s(_vm.concurrentViewers))]),
+    _vm._v(" "),
+    _c(
+      "button",
+      { attrs: { disabled: _vm.download }, on: { click: _vm.downloadCSV } },
+      [_vm._v("ダウンロード")]
+    ),
     _vm._v(" "),
     _c(
       "ul",
