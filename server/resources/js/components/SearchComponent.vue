@@ -1,18 +1,36 @@
 <template>
-<div>
-    <input type="text" v-model="url">
-    <select v-model="remainingTime" :disabled="search">
-        <option value="10">10秒</option>
-        <option value="60">1分</option>
-        <option value="300">5分</option>
-        <option value="600">10分</option>
-    </select>
-    <button @click="startAnalysis" :disabled="search">検索</button>
-    <p v-if="errorMsg">{{errorMsg}}</p>
-    <p>{{min}}:{{sec}}</p>
-    <button :disabled="reset" @click="timerReset">リセット</button>
-    <p>同時視聴者数:{{concurrentViewers}}</p>
-    <button @click="downloadCSV" :disabled="download">ダウンロード</button>
+<div class="container">
+    <div class="mt-4">
+        <toggle-button :value="isChecked"
+                :color="{checked: '#DA1725', unchecked: '#6441A4'}"
+                :width="85"
+                :height="30"
+                :font-size=12
+                :labels="{checked: 'YouTube', unchecked: 'Twitch'}"
+                @change="changeStreamService"></toggle-button>
+    </div>
+
+    <div class="mt-2">
+        <select class="form-control mb-2 w-25" v-model="remainingTime" :disabled="search">
+            <option value="" style="display: none">Please select a time</option>
+            <option value="10">10秒</option>
+            <option value="60">1分</option>
+            <option value="300">5分</option>
+            <option value="600">10分</option>
+        </select>
+        <div class="input-group">
+            <input type="text" v-model="url" class="form-control" placeholder="Please enter the URL">
+            <span class="input-group-btn">
+                <button class="btn btn-default btn-outline-primary" @click="startAnalysis" :disabled="search"><i class="fas fa-search"></i></button>
+            </span>
+        </div>
+    </div>
+
+    <p class="mt-3 h5 text-danger" v-if="errorMsg">{{errorMsg}}</p>
+    <p class="mt-3 display-4">{{min}}:{{sec}}</p>
+    <button class="btn btn-success" :disabled="reset" @click="timerReset">Reset</button>
+    <button class="btn btn-dark" @click="downloadCSV" :disabled="download">Download CSV</button>
+    <p class="mt-5 h4">同時視聴者数：{{concurrentViewers}}</p>
     <ul>
         <li v-for="(liveHistory, index) in liveHistories" :key="index">{{liveHistory.numberOfPeople}}人　{{liveHistory.date}}</li>
     </ul>
@@ -35,14 +53,21 @@ export default {
             errorMsg: null,
             date: null,
             download: true,
-            liveHistories: []
+            liveHistories: [],
+            isChecked: true
         }
     },
     methods: {
         // 処理開始
         startAnalysis() {
             this.initTime = this.remainingTime;
-            this.getYoutubeLiveStreamingDetailsByVideoId();
+            // 配信サイトによって叩くAPIを変更
+            if(this.isChecked) {
+                this.getYoutubeLiveStreamingDetailsByVideoId();
+            } else {
+                this.errorMsg = 'Twitchは現在利用できません。';
+            }
+            
         },
 
         // ライブ情報取得
@@ -64,7 +89,7 @@ export default {
                     this.errorMsg = 'このライブは終了したか、ライブ配信ではありません。'
                 }
             }).catch(() => {
-                this.concurrentViewers = 0;
+                this.concurrentViewers = '';
                 this.errorMsg = 'URLが無効です';
             });
         },
@@ -76,6 +101,8 @@ export default {
             this.timerObj = setInterval(() => {
                 this.search = true;
                 this.reset = false;
+
+                console.log(this.isChecked);
 
                 // 履歴が空でなければダウンロードボタンを押せるようにする
                 if (this.liveHistories.length > 0) this.download = false;
@@ -158,6 +185,12 @@ export default {
         digitAdjustment(date){
             if (date < 10) return '0' + date;
             return date;
+        },
+
+        // 配信サービス切り替え
+        changeStreamService() {
+            this.isChecked ? this.isChecked = false : this.isChecked = true;
+            console.log(this.isChecked);
         }
     }
 }
