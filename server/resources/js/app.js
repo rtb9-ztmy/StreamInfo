@@ -5,10 +5,13 @@
  */
 
 import SearchComponent from './components/SearchComponent';
+import ToggleButton from 'vue-js-toggle-button';
 
 require('./bootstrap');
 
 window.Vue = require('vue');
+
+Vue.use(ToggleButton);
 
 /**
  * The following block of code may be used to automatically register your
