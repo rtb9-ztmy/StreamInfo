@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Google_Client;
 use Google_Service_YouTube;
-use Log;
 
 class YoutubeController extends Controller
 {
@@ -27,7 +26,7 @@ class YoutubeController extends Controller
             'id' => $videoId,
             'part' => ['snippet', 'liveStreamingDetails']
         ]);
-        
+
         if ((array)$liveStreamingDetails->items) {
             return json_encode($liveStreamingDetails);
         } else {

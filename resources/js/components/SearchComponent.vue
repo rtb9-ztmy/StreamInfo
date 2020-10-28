@@ -10,7 +10,7 @@
                 @change="changeStreamService"></toggle-button>
     </div>
 
-    <div class="mt-2">
+    <div class="mt-2" v-if="isChecked">
         <select class="form-control mb-2 w-25" v-model="remainingTime" :disabled="search">
             <option value="" style="display: none">Please select a time</option>
             <option value="10">10秒</option>
@@ -20,6 +20,22 @@
         </select>
         <div class="input-group">
             <input type="text" v-model="url" class="form-control" placeholder="Please enter the URL">
+            <span class="input-group-btn">
+                <button class="btn btn-default btn-outline-primary" @click="startAnalysis" :disabled="search"><i class="fas fa-search"></i></button>
+            </span>
+        </div>
+    </div>
+
+    <div class="mt-2" v-else>
+        <select class="form-control mb-2 w-25" v-model="remainingTime" :disabled="search">
+            <option value="" style="display: none">Please select a time</option>
+            <option value="10">10秒</option>
+            <option value="60">1分</option>
+            <option value="300">5分</option>
+            <option value="600">10分</option>
+        </select>
+        <div class="input-group">
+            <input type="text" v-model="username" class="form-control" placeholder="Please enter the UserName">
             <span class="input-group-btn">
                 <button class="btn btn-default btn-outline-primary" @click="startAnalysis" :disabled="search"><i class="fas fa-search"></i></button>
             </span>
@@ -54,7 +70,8 @@ export default {
             date: null,
             download: true,
             liveHistories: [],
-            isChecked: true
+            isChecked: true,
+            username: '',
         }
     },
     methods: {
@@ -65,7 +82,7 @@ export default {
             if(this.isChecked) {
                 this.getYoutubeLiveStreamingDetailsByVideoId();
             } else {
-                this.errorMsg = 'Twitchは現在利用できません。';
+                this.getTwitchLiveStreamingDetails();
             }
             
         },
@@ -94,6 +111,37 @@ export default {
             });
         },
 
+        // TwitchLive情報取得
+        getTwitchLiveStreamingDetails() {
+            let streamDetail = '';
+
+            if (!this.remainingTime) {
+                this.errorMsg = '時間を選択してください。';
+                return;
+            } else if (!this.username) {
+                this.errorMsg = 'ユーザー名を入力してください。';
+                return;
+            }
+
+            axios.get('api/twitch/search/' + this.username).then((res) => {
+                this.errorMsg = '';
+
+                // 検索したユーザーと一致するユーザーを取得
+                for (let el of res.data.streams) {
+                    if (this.username === el.channel.display_name) streamDetail = el;
+                }
+
+                // ライブ配信中でない場合
+                if (!streamDetail) {
+                    this.errorMsg = 'ユーザーが存在しないか、ライブ配信中ではありません。';
+                    return;
+                }
+
+                this.concurrentViewers = streamDetail.viewers;
+                this.timerStart();
+            });
+        },
+
         // タイマー開始
         timerStart() {
             if (this.timerObj) clearInterval(this.timerObj);
@@ -101,8 +149,6 @@ export default {
             this.timerObj = setInterval(() => {
                 this.search = true;
                 this.reset = false;
-
-                console.log(this.isChecked);
 
                 // 履歴が空でなければダウンロードボタンを押せるようにする
                 if (this.liveHistories.length > 0) this.download = false;
@@ -121,7 +167,8 @@ export default {
                     this.remainingTime = this.initTime;
                     this.getDate();
                     this.liveHistories.push({numberOfPeople: this.concurrentViewers, date: this.date});
-                    this.getYoutubeLiveStreamingDetailsByVideoId();
+                    this.isChecked ? this.getYoutubeLiveStreamingDetailsByVideoId() : this.getTwitchLiveStreamingDetails();
+                    
                 }
             }, 1000);
         },
@@ -163,7 +210,7 @@ export default {
 
         // csvダウンロード
         downloadCSV() {
-            if(this.liveHistories.length > 1) this.download = false; 
+            if (this.liveHistories.length > 1) this.download = false; 
 
             let csv = '\ufeff' + '同時視聴者数,時刻\n'
 
@@ -171,7 +218,6 @@ export default {
             this.liveHistories.forEach(function(el){
                 let line = el.numberOfPeople + ',' + el.date + '\n';
                 csv += line;
-                console.log(el);
             });
 
             let blob = new Blob([csv], { type: 'text/csv' });
@@ -190,7 +236,6 @@ export default {
         // 配信サービス切り替え
         changeStreamService() {
             this.isChecked ? this.isChecked = false : this.isChecked = true;
-            console.log(this.isChecked);
         }
     }
 }
