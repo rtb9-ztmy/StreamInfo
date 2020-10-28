@@ -115,6 +115,14 @@ export default {
         getTwitchLiveStreamingDetails() {
             let streamDetail = '';
 
+            if (!this.remainingTime) {
+                this.errorMsg = '時間を選択してください。';
+                return;
+            } else if (!this.username) {
+                this.errorMsg = 'ユーザー名を入力してください。';
+                return;
+            }
+
             axios.get('api/twitch/search/' + this.username).then((res) => {
                 this.errorMsg = '';
 

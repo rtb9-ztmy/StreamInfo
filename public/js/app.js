@@ -2085,6 +2085,15 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       var _this2 = this;
 
       var streamDetail = '';
+
+      if (!this.remainingTime) {
+        this.errorMsg = '時間を選択してください。';
+        return;
+      } else if (!this.username) {
+        this.errorMsg = 'ユーザー名を入力してください。';
+        return;
+      }
+
       axios.get('api/twitch/search/' + this.username).then(function (res) {
         _this2.errorMsg = ''; // 検索したユーザーと一致するユーザーを取得
 
