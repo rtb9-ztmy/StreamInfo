@@ -7,7 +7,16 @@
                 :height="30"
                 :font-size=12
                 :labels="{checked: 'YouTube', unchecked: 'Twitch'}"
+                :disabled="toggleButtonActive"
                 @change="changeStreamService"></toggle-button>
+        <toggle-button :value="darkMode"
+                class="float-right"
+                :color="{checked: '#38c172'}"
+                :width="65"
+                :height="30"
+                :font-size=12
+                :labels="{checked: 'ON', unchecked: 'OFF'}"
+                @change="changeDisplayMode"></toggle-button>
     </div>
 
     <div class="mt-2" v-if="isChecked">
@@ -43,11 +52,11 @@
     </div>
 
     <p class="mt-3 h5 text-danger" v-if="errorMsg">{{errorMsg}}</p>
-    <p class="mt-3 display-4">{{min}}:{{sec}}</p>
+    <p id="time" class="mt-3 display-4">{{min}}:{{sec}}</p>
     <button class="btn btn-success" :disabled="reset" @click="timerReset">Reset</button>
     <button class="btn btn-dark" @click="downloadCSV" :disabled="download">Download CSV</button>
-    <p class="mt-5 h4">同時視聴者数：{{concurrentViewers}}</p>
-    <ul>
+    <p id="concurrentViewers" class="mt-5 h4">同時視聴者数：{{concurrentViewers}}</p>
+    <ul id="liveHistory">
         <li v-for="(liveHistory, index) in liveHistories" :key="index">{{liveHistory.numberOfPeople}}人　{{liveHistory.date}}</li>
     </ul>
 </div>
@@ -71,13 +80,17 @@ export default {
             download: true,
             liveHistories: [],
             isChecked: true,
+            toggleButtonActive: false,
             username: '',
+            darkMode: false,
+            darkModeBgColor: 'bg-dark'
         }
     },
     methods: {
         // 処理開始
         startAnalysis() {
             this.initTime = this.remainingTime;
+
             // 配信サイトによって叩くAPIを変更
             if(this.isChecked) {
                 this.getYoutubeLiveStreamingDetailsByVideoId();
@@ -89,37 +102,48 @@ export default {
 
         // ライブ情報取得
         getYoutubeLiveStreamingDetailsByVideoId() {
+            this.toggleButtonActive = true;
+
+            // 時間が未選択のとき
+            if (!this.remainingTime) {
+                this.errorMsg = '時間を選択してください。';
+                this.toggleButtonActive = false;
+                return;                
+            }
+
             // URLの余分な部分をカット
             let videoId = this.url.replace('https://www.youtube.com/watch?v=', '').replace('&feature=youtu.be', '');
 
             axios.get('/api/search/' + videoId).then((res) => {
                 // ライブ中か判定
-                if (!this.remainingTime) {
-                    this.errorMsg = '時間を選択してください。';
-                    return;
-                }
                 if (res.data.items[0].snippet.liveBroadcastContent === 'live') {
                     this.errorMsg = '';
                     this.concurrentViewers = res.data.items[0].liveStreamingDetails.concurrentViewers;
                     this.timerStart();
                 } else {
-                    this.errorMsg = 'このライブは終了したか、ライブ配信ではありません。'
+                    this.errorMsg = 'このライブは終了したか、ライブ配信ではありません。';
+                    this.toggleButtonActive = false;
                 }
             }).catch(() => {
                 this.concurrentViewers = '';
                 this.errorMsg = 'URLが無効です';
+                this.toggleButtonActive = false;
             });
         },
 
         // TwitchLive情報取得
         getTwitchLiveStreamingDetails() {
+            this.toggleButtonActive = true;
+
             let streamDetail = '';
 
             if (!this.remainingTime) {
                 this.errorMsg = '時間を選択してください。';
+                this.toggleButtonActive = false;
                 return;
             } else if (!this.username) {
                 this.errorMsg = 'ユーザー名を入力してください。';
+                this.toggleButtonActive = false;
                 return;
             }
 
@@ -134,6 +158,7 @@ export default {
                 // ライブ配信中でない場合
                 if (!streamDetail) {
                     this.errorMsg = 'ユーザーが存在しないか、ライブ配信中ではありません。';
+                    this.toggleButtonActive = false;
                     return;
                 }
 
@@ -180,6 +205,7 @@ export default {
             this.search = false;
             this.reset = true; 
             this.download = true;
+            this.toggleButtonActive = false;
 
             this.remainingTime = this.initTime;
             this.concurrentViewers = 0;
@@ -236,6 +262,33 @@ export default {
         // 配信サービス切り替え
         changeStreamService() {
             this.isChecked ? this.isChecked = false : this.isChecked = true;
+        },
+
+        // ダークモード切り替え
+        changeDisplayMode() {
+            // ON/OFF切り替え
+            this.darkMode ? this.darkMode = false : this.darkMode = true;
+
+            let html = document.documentElement;
+            let body = document.body;
+            let time = document.getElementById('time');
+            let concurrentViewers = document.getElementById('concurrentViewers');
+            let liveHistory = document.getElementById('liveHistory');
+
+            if(!this.darkMode) {
+                html.style.backgroundColor = '';
+                body.style.backgroundColor = '';
+                time.style.color = '';
+                concurrentViewers.style.color = '';
+                liveHistory.style.color = '';
+            } else {
+                html.style.backgroundColor = '#16212c';
+                body.style.backgroundColor = '#16212c';
+                time.style.color = '#fff';
+                concurrentViewers.style.color = '#fff';
+                liveHistory.style.color = '#fff';
+            }
+
         }
     }
 }
