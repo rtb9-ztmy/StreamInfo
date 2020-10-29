@@ -2023,6 +2023,15 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
@@ -2040,7 +2049,10 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       download: true,
       liveHistories: [],
       isChecked: true,
-      username: ''
+      toggleButtonActive: false,
+      username: '',
+      darkMode: false,
+      darkModeBgColor: 'bg-dark'
     };
   },
   methods: {
@@ -2058,15 +2070,18 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
     getYoutubeLiveStreamingDetailsByVideoId: function getYoutubeLiveStreamingDetailsByVideoId() {
       var _this = this;
 
-      // URLの余分な部分をカット
+      this.toggleButtonActive = true; // 時間が未選択のとき
+
+      if (!this.remainingTime) {
+        this.errorMsg = '時間を選択してください。';
+        this.toggleButtonActive = false;
+        return;
+      } // URLの余分な部分をカット
+
+
       var videoId = this.url.replace('https://www.youtube.com/watch?v=', '').replace('&feature=youtu.be', '');
       axios.get('/api/search/' + videoId).then(function (res) {
         // ライブ中か判定
-        if (!_this.remainingTime) {
-          _this.errorMsg = '時間を選択してください。';
-          return;
-        }
-
         if (res.data.items[0].snippet.liveBroadcastContent === 'live') {
           _this.errorMsg = '';
           _this.concurrentViewers = res.data.items[0].liveStreamingDetails.concurrentViewers;
@@ -2074,23 +2089,28 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
           _this.timerStart();
         } else {
           _this.errorMsg = 'このライブは終了したか、ライブ配信ではありません。';
+          _this.toggleButtonActive = false;
         }
       })["catch"](function () {
         _this.concurrentViewers = '';
         _this.errorMsg = 'URLが無効です';
+        _this.toggleButtonActive = false;
       });
     },
     // TwitchLive情報取得
     getTwitchLiveStreamingDetails: function getTwitchLiveStreamingDetails() {
       var _this2 = this;
 
+      this.toggleButtonActive = true;
       var streamDetail = '';
 
       if (!this.remainingTime) {
         this.errorMsg = '時間を選択してください。';
+        this.toggleButtonActive = false;
         return;
       } else if (!this.username) {
         this.errorMsg = 'ユーザー名を入力してください。';
+        this.toggleButtonActive = false;
         return;
       }
 
@@ -2114,6 +2134,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
 
         if (!streamDetail) {
           _this2.errorMsg = 'ユーザーが存在しないか、ライブ配信中ではありません。';
+          _this2.toggleButtonActive = false;
           return;
         }
 
@@ -2164,6 +2185,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       this.search = false;
       this.reset = true;
       this.download = true;
+      this.toggleButtonActive = false;
       this.remainingTime = this.initTime;
       this.concurrentViewers = 0;
       this.liveHistories = [];
@@ -2212,6 +2234,30 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
     // 配信サービス切り替え
     changeStreamService: function changeStreamService() {
       this.isChecked ? this.isChecked = false : this.isChecked = true;
+    },
+    // ダークモード切り替え
+    changeDisplayMode: function changeDisplayMode() {
+      // ON/OFF切り替え
+      this.darkMode ? this.darkMode = false : this.darkMode = true;
+      var html = document.documentElement;
+      var body = document.body;
+      var time = document.getElementById('time');
+      var concurrentViewers = document.getElementById('concurrentViewers');
+      var liveHistory = document.getElementById('liveHistory');
+
+      if (!this.darkMode) {
+        html.style.backgroundColor = '';
+        body.style.backgroundColor = '';
+        time.style.color = '';
+        concurrentViewers.style.color = '';
+        liveHistory.style.color = '';
+      } else {
+        html.style.backgroundColor = '#16212c';
+        body.style.backgroundColor = '#16212c';
+        time.style.color = '#fff';
+        concurrentViewers.style.color = '#fff';
+        liveHistory.style.color = '#fff';
+      }
     }
   }
 });
@@ -38726,9 +38772,23 @@ var render = function() {
             width: 85,
             height: 30,
             "font-size": 12,
-            labels: { checked: "YouTube", unchecked: "Twitch" }
+            labels: { checked: "YouTube", unchecked: "Twitch" },
+            disabled: _vm.toggleButtonActive
           },
           on: { change: _vm.changeStreamService }
+        }),
+        _vm._v(" "),
+        _c("toggle-button", {
+          staticClass: "float-right",
+          attrs: {
+            value: _vm.darkMode,
+            color: { checked: "#38c172" },
+            width: 65,
+            height: 30,
+            "font-size": 12,
+            labels: { checked: "ON", unchecked: "OFF" }
+          },
+          on: { change: _vm.changeDisplayMode }
         })
       ],
       1
@@ -38908,7 +38968,7 @@ var render = function() {
         ])
       : _vm._e(),
     _vm._v(" "),
-    _c("p", { staticClass: "mt-3 display-4" }, [
+    _c("p", { staticClass: "mt-3 display-4", attrs: { id: "time" } }, [
       _vm._v(_vm._s(_vm.min) + ":" + _vm._s(_vm.sec))
     ]),
     _vm._v(" "),
@@ -38932,12 +38992,13 @@ var render = function() {
       [_vm._v("Download CSV")]
     ),
     _vm._v(" "),
-    _c("p", { staticClass: "mt-5 h4" }, [
+    _c("p", { staticClass: "mt-5 h4", attrs: { id: "concurrentViewers" } }, [
       _vm._v("同時視聴者数：" + _vm._s(_vm.concurrentViewers))
     ]),
     _vm._v(" "),
     _c(
       "ul",
+      { attrs: { id: "liveHistory" } },
       _vm._l(_vm.liveHistories, function(liveHistory, index) {
         return _c("li", { key: index }, [
           _vm._v(
