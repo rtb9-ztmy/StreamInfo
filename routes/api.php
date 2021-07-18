@@ -17,3 +17,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::get('/search/{id}', 'App\Http\Controllers\api\YoutubeController@getLiveStreamingDetails');
+
+Route::get('twitch/search/{displayName}', 'App\Http\Controllers\api\TwitchController@getLiveStreamingDetails');
