@@ -1,13 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import ToggleSwitch from 'react-switch';
 import Time from '../components/Time';
+import InputData from '../components/InputData';
 
 function App() {
     console.log('App mounted');
 
     const [service, setService] = useState(true);   // true is YouTube, false is Twitch
     const [time, setTime] = useState(0);
+    const [inputData, setInputData] = useState('');
+
+    console.log(inputData);
 
     const serviceToggleTextStyle = {
         display: 'flex',
@@ -24,9 +28,13 @@ function App() {
         setService(!service);
     }
 
-    const changeTime = (e) => {
+    const changeTime = useCallback((e) => {
         setTime(e.target.value);
-    }
+    }, [time]);
+
+    const changeInputData = useCallback((e) => {
+        setInputData(e.target.value)
+    }, [inputData]);
 
     return (
         <div className="container">
@@ -44,12 +52,7 @@ function App() {
 
             <div className="mt-3">
                 <Time handleChange={changeTime} />
-                <div className="input-group">
-                    <input type="text" className="form-control" placeholder="Please enter the URL"></input>
-                    <span className="input-group-btn">
-                        <button className="btn btn-default btn-outline-primary"><i className="fas fa-search"></i></button>
-                    </span>
-                </div>
+                <InputData handleChange={changeInputData} />
             </div>
 
             <p id="time" className="mt-3 display-4">:</p>
