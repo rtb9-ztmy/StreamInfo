@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import ToggleSwitch from 'react-switch';
+import Time from '../components/Time';
 
 function App() {
     console.log('App mounted');
 
-    // true is YouTube, false is Twitch
-    const [service, setService] = useState(true);
+    const [service, setService] = useState(true);   // true is YouTube, false is Twitch
+    const [time, setTime] = useState(0);
 
     const serviceToggleTextStyle = {
         display: 'flex',
@@ -19,10 +20,12 @@ function App() {
         color: '#fff'
     }
 
-    const times = [10, 60, 300, 600];
-
     const changeService = () => {
         setService(!service);
+    }
+
+    const changeTime = (e) => {
+        setTime(e.target.value);
     }
 
     return (
@@ -40,14 +43,7 @@ function App() {
             </div>
 
             <div className="mt-3">
-                <select className="form-control mb-2 w-25">
-                    <option value="" style={{display: 'none'}}>Please select a time</option>
-                    {times.map((time, index) => 
-                        <option key={index} value={time}>
-                            {time >= 60 ? time / 60 + '分' : time + '秒'}
-                        </option>)
-                    }
-                </select>
+                <Time handleChange={changeTime} />
                 <div className="input-group">
                     <input type="text" className="form-control" placeholder="Please enter the URL"></input>
                     <span className="input-group-btn">
