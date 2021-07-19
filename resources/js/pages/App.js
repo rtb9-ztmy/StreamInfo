@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import ToggleSwitch from 'react-switch';
 import Time from '../components/Time';
@@ -9,9 +9,19 @@ function App() {
 
     const [service, setService] = useState(true);   // true is YouTube, false is Twitch
     const [time, setTime] = useState(0);
+    const [displayTime, setDisplayTime] = useState({});
     const [inputData, setInputData] = useState('');
 
-    console.log(inputData);
+    useEffect(() => {
+        let min = Math.floor(time / 60);
+        let sec = time % 60;
+
+        // 残り秒数が10以下の場合、0埋めする。
+        if(sec < 10) {
+            sec = ( '00' + sec ).slice(-2);
+        }
+        setDisplayTime({min: min, sec: sec});
+    }, [time])
 
     const serviceToggleTextStyle = {
         display: 'flex',
@@ -30,11 +40,17 @@ function App() {
 
     const changeTime = useCallback((e) => {
         setTime(e.target.value);
-    }, [time]);
+    }, []);
 
     const changeInputData = useCallback((e) => {
         setInputData(e.target.value)
-    }, [inputData]);
+    }, []);
+
+    const timerStart = useCallback(() => {
+        setInterval(() => {
+            setTime(prevState => prevState - 1);
+        }, 1000);
+    }, []);
 
     return (
         <div className="container">
@@ -52,10 +68,10 @@ function App() {
 
             <div className="mt-3">
                 <Time handleChange={changeTime} />
-                <InputData handleChange={changeInputData} />
+                <InputData handleChange={changeInputData} handleClick={timerStart} />
             </div>
 
-            <p id="time" className="mt-3 display-4">:</p>
+            <p id="time" className="mt-3 display-4">{displayTime.min}:{displayTime.sec}</p>
             <button className="btn btn-success">Reset</button>
             <button className="btn btn-dark ml-1">Download CSV</button>
             <p id="concurrentViewers" className="mt-5 h4">同時視聴者数：</p>
