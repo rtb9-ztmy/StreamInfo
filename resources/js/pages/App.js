@@ -21,7 +21,7 @@ function App() {
             sec = ( '00' + sec ).slice(-2);
         }
         setDisplayTime({min: min, sec: sec});
-    }, [time])
+    }, [time]);
 
     const serviceToggleTextStyle = {
         display: 'flex',
@@ -68,7 +68,7 @@ function App() {
 
             <div className="mt-3">
                 <Time handleChange={changeTime} />
-                <InputData handleChange={changeInputData} handleClick={timerStart} />
+                <InputData handleChange={changeInputData} handleClick={timerStart} service={service} />
             </div>
 
             <p id="time" className="mt-3 display-4">{displayTime.min}:{displayTime.sec}</p>
