@@ -15,7 +15,7 @@ class YoutubeController extends Controller
     public function __construct()
     {
         $this->googleClient = new Google_Client();
-        $this->googleClient->setDeveloperKey("AIzaSyAaFI_H4r34fWjfOd7o-nWwvQshSccgKLU");
+        $this->googleClient->setDeveloperKey(config('app.google_api_key'));
 
         $this->youtube = new Google_Service_YouTube($this->googleClient);
     }
