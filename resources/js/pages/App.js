@@ -9,8 +9,10 @@ function App() {
 
     const [service, setService] = useState(true);   // true is YouTube, false is Twitch
     const [time, setTime] = useState(0);
+    const [startTime, setStartTime] = useState(0);
     const [displayTime, setDisplayTime] = useState({});
     const [inputData, setInputData] = useState('');
+    const [intervalId, setIntervalId] = useState('');
 
     useEffect(() => {
         let min = Math.floor(time / 60);
@@ -40,6 +42,7 @@ function App() {
 
     const changeTime = useCallback((e) => {
         setTime(e.target.value);
+        setStartTime(e.target.value);
     }, []);
 
     const changeInputData = useCallback((e) => {
@@ -47,10 +50,17 @@ function App() {
     }, []);
 
     const timerStart = useCallback(() => {
-        setInterval(() => {
-            setTime(prevState => prevState - 1);
-        }, 1000);
+        setIntervalId(
+            setInterval(() => {
+                setTime(prevState => prevState - 1);
+            }, 1000)
+        );
     }, []);
+
+    const timerStop = () => {
+        clearInterval(intervalId);
+        setTime(startTime);
+    }
 
     return (
         <div className="container">
@@ -72,7 +82,7 @@ function App() {
             </div>
 
             <p id="time" className="mt-3 display-4">{displayTime.min}:{displayTime.sec}</p>
-            <button className="btn btn-success">Reset</button>
+            <button className="btn btn-success" onClick={timerStop}>Reset</button>
             <button className="btn btn-dark ml-1">Download CSV</button>
             <p id="concurrentViewers" className="mt-5 h4">同時視聴者数：</p>
         </div>
