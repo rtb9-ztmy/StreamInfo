@@ -3,16 +3,19 @@ import ReactDOM from 'react-dom';
 import ToggleSwitch from 'react-switch';
 import Time from '../components/Time';
 import InputData from '../components/InputData';
+import axios from 'axios';
 
 function App() {
     console.log('App mounted');
 
     const [service, setService] = useState(true);   // true is YouTube, false is Twitch
-    const [time, setTime] = useState(0);
+    const [time, setTime] = useState(null);
     const [startTime, setStartTime] = useState(0);
     const [displayTime, setDisplayTime] = useState({});
     const [inputData, setInputData] = useState('');
     const [intervalId, setIntervalId] = useState('');
+    const [totalViewerNum, setTotalViewerNum] = useState(null);
+    const [errorMsg, setErrorMsg] = useState('');
 
     useEffect(() => {
         let min = Math.floor(time / 60);
@@ -23,6 +26,12 @@ function App() {
             sec = ( '00' + sec ).slice(-2);
         }
         setDisplayTime({min: min, sec: sec});
+
+        // 残り時間が0になった場合はタイマーを止める。
+        if(time === 0) {
+            timerStop();
+            startAnalysis(inputData);
+        }
     }, [time]);
 
     const serviceToggleTextStyle = {
@@ -40,27 +49,58 @@ function App() {
         setService(!service);
     }
 
-    const changeTime = useCallback((e) => {
-        setTime(e.target.value);
-        setStartTime(e.target.value);
-    }, []);
-
-    const changeInputData = useCallback((e) => {
-        setInputData(e.target.value)
-    }, []);
-
-    const timerStart = useCallback(() => {
+    const timerStart = () => {
         setIntervalId(
             setInterval(() => {
                 setTime(prevState => prevState - 1);
             }, 1000)
         );
-    }, []);
+    }
 
     const timerStop = () => {
         clearInterval(intervalId);
         setTime(startTime);
+        setTotalViewerNum(null);
     }
+
+    const getYoutubeLiveDetails = async videoId => {
+        await axios.get('/api/search/' + videoId).then( res => {
+            // ライブ中か判定
+            if(res.data.items[0].snippet.liveBroadcastContent === 'live') {
+                setTotalViewerNum(res.data.items[0].liveStreamingDetails.concurrentViewers);
+            } else {
+                throw new Error('このライブは終了したか、ライブ配信ではありません。');
+            }
+        }).catch((e) => {
+            // isAxiosErrorがtrueの場合は400系、500系のエラー
+            throw new Error(e.isAxiosError ? 'URLが無効です。' : e.message);
+        });
+    }
+
+    const checkInputDataSet = (inputData) => {
+        if(!inputData) {
+            throw new Error('URLを入力してください。');
+        }
+    }
+
+    const changeTime = useCallback((e) => {
+        setTime(e.target.value);
+        setStartTime(e.target.value);
+    }, []);
+
+    const startAnalysis = useCallback(async inputData => {
+        setInputData(inputData);
+
+        try {
+            checkInputDataSet(inputData);
+            await getYoutubeLiveDetails(inputData);
+        } catch(e) {
+            setErrorMsg(e.message);
+            return;
+        }
+
+        timerStart();
+    }, []);
 
     return (
         <div className="container">
@@ -78,13 +118,16 @@ function App() {
 
             <div className="mt-3">
                 <Time handleChange={changeTime} />
-                <InputData handleChange={changeInputData} handleClick={timerStart} service={service} />
+                <InputData handleClick={startAnalysis} service={service} />
             </div>
 
+            {errorMsg && (
+                <p className="mt-3 h5 text-danger">{errorMsg}</p>
+            )}
             <p id="time" className="mt-3 display-4">{displayTime.min}:{displayTime.sec}</p>
             <button className="btn btn-success" onClick={timerStop}>Reset</button>
             <button className="btn btn-dark ml-1">Download CSV</button>
-            <p id="concurrentViewers" className="mt-5 h4">同時視聴者数：</p>
+            <p id="concurrentViewers" className="mt-5 h4">同時視聴者数：{totalViewerNum}</p>
         </div>
     );
 }
