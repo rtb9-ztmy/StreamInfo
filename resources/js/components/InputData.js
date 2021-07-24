@@ -14,7 +14,7 @@ function InputData({handleClick, service, time}) {
         <div className="input-group">
             <input type="text" className="form-control" placeholder={placeholder} onChange={changeInputData}></input>
             <span className="input-group-btn">
-                <button className="btn btn-default btn-outline-primary" onClick={() => handleClick(inputData, time)} disabled={runFlg}><i className="fas fa-search"></i></button>
+                <button className="btn btn-default btn-outline-primary" onClick={() => handleClick(inputData, time)}><i className="fas fa-search"></i></button>
             </span>
         </div>
     );

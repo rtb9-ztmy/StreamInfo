@@ -51,7 +51,6 @@ function App() {
     }
 
     const timerStart = () => {
-        console.log(runFlg);
         setRunFlg(true);
         setIntervalId(
             setInterval(() => {
@@ -93,6 +92,10 @@ function App() {
         }
     }
 
+    const extractVideoId = (url) => {
+        return url.replace('https://www.youtube.com/watch?v=', '').replace('&feature=youtu.be', '');
+    }
+
     const changeTime = useCallback((e) => {
         setTime(e.target.value);
         setStartTime(e.target.value);
@@ -104,7 +107,9 @@ function App() {
         try {
             checkTimeSet(time);
             checkInputDataSet(inputData);
-            await getYoutubeLiveDetails(inputData);
+            
+            let videoId = extractVideoId(inputData);
+            await getYoutubeLiveDetails(videoId);
         } catch(e) {
             setErrorMsg(e.message);
             return;
