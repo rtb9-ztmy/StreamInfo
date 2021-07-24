@@ -16,6 +16,7 @@ function App() {
     const [intervalId, setIntervalId] = useState('');
     const [totalViewerNum, setTotalViewerNum] = useState(null);
     const [errorMsg, setErrorMsg] = useState('');
+    const [runFlg, setRunFlg] = useState(false);
 
     useEffect(() => {
         let min = Math.floor(time / 60);
@@ -27,10 +28,10 @@ function App() {
         }
         setDisplayTime({min: min, sec: sec});
 
-        // 残り時間が0になった場合はタイマーを止める。
-        if(time === 0) {
+        // 残り時間が0になった場合は時間をリセットして再度データを取得する。
+        if(runFlg && time === 0) {
             timerStop();
-            startAnalysis(inputData);
+            startAnalysis(inputData, startTime);
         }
     }, [time]);
 
@@ -50,6 +51,8 @@ function App() {
     }
 
     const timerStart = () => {
+        console.log(runFlg);
+        setRunFlg(true);
         setIntervalId(
             setInterval(() => {
                 setTime(prevState => prevState - 1);
@@ -61,6 +64,7 @@ function App() {
         clearInterval(intervalId);
         setTime(startTime);
         setTotalViewerNum(null);
+        setRunFlg(false);
     }
 
     const getYoutubeLiveDetails = async videoId => {
@@ -83,15 +87,22 @@ function App() {
         }
     }
 
+    const checkTimeSet = (time) => {
+        if(!time) {
+            throw new Error('時間を選択してください。');
+        }
+    }
+
     const changeTime = useCallback((e) => {
         setTime(e.target.value);
         setStartTime(e.target.value);
     }, []);
 
-    const startAnalysis = useCallback(async inputData => {
+    const startAnalysis = useCallback(async (inputData, time) => {
         setInputData(inputData);
 
         try {
+            checkTimeSet(time);
             checkInputDataSet(inputData);
             await getYoutubeLiveDetails(inputData);
         } catch(e) {
@@ -99,7 +110,8 @@ function App() {
             return;
         }
 
-        timerStart();
+        setErrorMsg('');
+        timerStart(runFlg);
     }, []);
 
     return (
@@ -118,7 +130,7 @@ function App() {
 
             <div className="mt-3">
                 <Time handleChange={changeTime} />
-                <InputData handleClick={startAnalysis} service={service} />
+                <InputData handleClick={startAnalysis} service={service} time={time} />
             </div>
 
             {errorMsg && (
