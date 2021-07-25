@@ -6,8 +6,6 @@ import InputData from '../components/InputData';
 import axios from 'axios';
 
 function App() {
-    console.log('App mounted');
-
     const [service, setService] = useState(true);   // true is YouTube, false is Twitch
     const [time, setTime] = useState(null);
     const [startTime, setStartTime] = useState(0);
@@ -31,7 +29,7 @@ function App() {
         // 残り時間が0になった場合は時間をリセットして再度データを取得する。
         if(runFlg && time === 0) {
             timerStop();
-            startAnalysis(inputData, startTime);
+            startAnalysis(inputData, startTime, service);
         }
     }, [time]);
 
@@ -80,6 +78,26 @@ function App() {
         });
     }
 
+    const getTwitchLiveDetails = async username => {
+        await axios.get('/api/twitch/search/' + username).then( res => {
+            // 検索したユーザーと一致するユーザーを取得
+            let streamDetail = '';
+            res.data.streams.forEach((stream) => {
+                if(username === stream.channel.display_name) streamDetail = stream;
+            });
+
+            // ライブ配信中かチェック
+            if(!streamDetail) {
+                throw new Error('ユーザーが存在しないか、ライブ配信中ではありません。');
+            }
+
+            setTotalViewerNum(streamDetail.viewers);
+        }).catch( e => {
+            // isAxiosErrorがtrueの場合は400系、500系のエラー
+            throw new Error(e.isAxiosError ? 'ユーザー名がが無効です。' : e.message);
+        });
+    }
+
     const checkInputDataSet = (inputData) => {
         if(!inputData) {
             throw new Error('URLを入力してください。');
@@ -101,15 +119,19 @@ function App() {
         setStartTime(e.target.value);
     }, []);
 
-    const startAnalysis = useCallback(async (inputData, time) => {
+    const startAnalysis = useCallback(async (inputData, time, service) => {
         setInputData(inputData);
 
         try {
             checkTimeSet(time);
             checkInputDataSet(inputData);
-            
-            let videoId = extractVideoId(inputData);
-            await getYoutubeLiveDetails(videoId);
+
+            if(service) {
+                let videoId = extractVideoId(inputData);
+                await getYoutubeLiveDetails(videoId);
+            } else {
+                await getTwitchLiveDetails(inputData);
+            }
         } catch(e) {
             setErrorMsg(e.message);
             return;
